@@ -1,0 +1,8 @@
+╔═══════════════════════════════════════╗
+║                                       ║
+║     📱 AndroidLab Home Server         ║
+║                                       ║
+║     Authorized access only            ║
+║     All sessions are logged           ║
+║                                       ║
+╚═══════════════════════════════════════╝

@@ -1,0 +1,40 @@
+# ============================================================
+#         AndroidLab — OpenSSH Server Configuration
+# ============================================================
+
+# Network
+Port 8022
+ListenAddress 0.0.0.0
+AddressFamily any
+
+# Authentication Methods
+PermitRootLogin no
+PasswordAuthentication yes
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2
+ChallengeResponseAuthentication no
+KerberosAuthentication no
+GSSAPIAuthentication no
+
+# Security Limits
+MaxAuthTries 3
+MaxSessions 10
+LoginGraceTime 30
+ClientAliveInterval 60
+ClientAliveCountMax 5
+
+# Features
+X11Forwarding no
+AllowTcpForwarding yes
+GatewayPorts no
+PermitTunnel no
+AllowAgentForwarding yes
+
+# SFTP (file transfer via SSH)
+Subsystem sftp /data/data/com.termux/files/usr/libexec/sftp-server
+
+# Logging
+LogLevel VERBOSE
+
+# Banner (shown before login)
+Banner /data/data/com.termux/files/home/server/config/ssh-banner.txt
