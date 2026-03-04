@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AndroidLab — Home Server</title>
+  <meta name="description" content="AndroidLab Home Server Dashboard — Monitor your Android-powered server">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-orange: #f0883e;
+      --accent-purple: #bc8cff;
+      --accent-red: #f85149;
+      --accent-cyan: #39d2c0;
+      --glow-blue: rgba(88, 166, 255, 0.15);
+      --glow-green: rgba(63, 185, 80, 0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(circle at 20% 50%, rgba(88, 166, 255, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(188, 140, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(63, 185, 80, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 92%;
+      margin: 0 auto;
+      padding: 40px 0 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 8px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      font-weight: 400;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+      padding: 6px 16px;
+      background: var(--glow-green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--accent-green);
+      font-weight: 500;
+    }
+
+    .status-badge .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.4); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(63, 185, 80, 0); }
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.5rem; }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover {
+      border-color: rgba(88, 166, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .card-icon {
+      font-size: 1.1rem;
+    }
+
+    .card h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Service status rows */
+    .svc-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+    }
+
+    .svc-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(63, 185, 80, 0.5);
+    }
+
+    .svc-dot.warn { background: var(--accent-orange); box-shadow: 0 0 6px rgba(240, 136, 62, 0.5); }
+
+    .svc-name {
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .svc-port {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* Stack items */
+    .stack-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 0;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .stack-item span:first-child { font-size: 1rem; }
+    .stack-item strong { color: var(--text-primary); font-weight: 500; }
+
+    /* Code blocks */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-tertiary);
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: var(--accent-orange);
+      font-size: 0.78rem;
+      border: 1px solid var(--border);
+    }
+
+    .cmd-block {
+      padding: 6px 0;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .cmd-block code {
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    /* System card */
+    .sys-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 0.82rem;
+    }
+
+    .sys-label { color: var(--text-muted); }
+    .sys-value { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+
+    /* Full-width card */
+    .card-full {
+      grid-column: 1 / -1;
+    }
+
+    /* Port map table */
+    .port-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .port-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .port-table td {
+      padding: 8px 0;
+      font-size: 0.82rem;
+      border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+    }
+
+    .port-table td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-cyan);
+      font-weight: 500;
+    }
+
+    .port-table td:nth-child(2) {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .port-table td:last-child {
+      color: var(--text-secondary);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer p {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 8px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .github-link:hover {
+      border-color: var(--accent-blue);
+      background: var(--glow-blue);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">📱</div>
+      <h1>AndroidLab</h1>
+      <p class="subtitle">Home Server — Powered by Termux</p>
+      <div class="status-badge">
+        <div class="pulse"></div>
+        Server Online
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="grid">
+      <!-- Services -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔌</span>
+          <h3>Services</h3>
+        </div>
+        <div class="svc-row">
+          <div class="svc-dot"></div>
+          <span class="svc-name">SSH Server</span>
+          <span class="svc-port">:8022</span>
+        </div>
+        <div class="svc-row">
+          <div class="svc-dot"></div>
+          <span class="svc-name">Nginx</span>
+          <span class="svc-port">:8080</span>
+        </div>
+        <div class="svc-row">
+          <div class="svc-dot"></div>
+          <span class="svc-name">FileBrowser</span>
+          <span class="svc-port">:8081</span>
+        </div>
+        <div class="svc-row">
+          <div class="svc-dot"></div>
+          <span class="svc-name">System API</span>
+          <span class="svc-port">:5000</span>
+        </div>
+        <div class="svc-row">
+          <div class="svc-dot"></div>
+          <span class="svc-name">MariaDB</span>
+          <span class="svc-port">:3306</span>
+        </div>
+      </div>
+
+      <!-- Stack -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <h3>Tech Stack</h3>
+        </div>
+        <div class="stack-item"><span>🐍</span> <strong>Python 3</strong> — Flask API</div>
+        <div class="stack-item"><span>📦</span> <strong>Node.js</strong> — JS Apps</div>
+        <div class="stack-item"><span>🗄️</span> <strong>MariaDB</strong> — Database</div>
+        <div class="stack-item"><span>🌐</span> <strong>Nginx</strong> — Web Server</div>
+        <div class="stack-item"><span>📁</span> <strong>FileBrowser</strong> — File UI</div>
+        <div class="stack-item"><span>☁️</span> <strong>rclone</strong> — Cloud Sync</div>
+      </div>
+
+      <!-- Connect -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📡</span>
+          <h3>Connect</h3>
+        </div>
+        <div class="cmd-block">SSH: <code>ssh -p 8022 &lt;IP&gt;</code></div>
+        <div class="cmd-block">Web: <code>http://&lt;IP&gt;:8080</code></div>
+        <div class="cmd-block">Files: <code>http://&lt;IP&gt;:8081</code></div>
+        <div class="cmd-block">API: <code>http://&lt;IP&gt;:5000/status</code></div>
+      </div>
+
+      <!-- System Info -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <h3>System</h3>
+        </div>
+        <div class="sys-row">
+          <span class="sys-label">Platform</span>
+          <span class="sys-value" id="platform">—</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-label">Time</span>
+          <span class="sys-value" id="time">—</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-label">Timezone</span>
+          <span class="sys-value" id="timezone">—</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-label">Language</span>
+          <span class="sys-value" id="language">—</span>
+        </div>
+      </div>
+
+      <!-- Port Map (full width) -->
+      <div class="card card-full">
+        <div class="card-header">
+          <span class="card-icon">🗺️</span>
+          <h3>Port Map</h3>
+        </div>
+        <table class="port-table">
+          <thead>
+            <tr><th>Port</th><th>Service</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>8022</td><td>OpenSSH</td><td>Remote terminal access</td></tr>
+            <tr><td>8080</td><td>Nginx</td><td>Web server &amp; reverse proxy</td></tr>
+            <tr><td>8081</td><td>FileBrowser</td><td>Web-based file manager</td></tr>
+            <tr><td>5000</td><td>Python Flask</td><td>System API &amp; custom apps</td></tr>
+            <tr><td>3000</td><td>Node.js</td><td>JavaScript applications</td></tr>
+            <tr><td>3306</td><td>MariaDB</td><td>MySQL-compatible database</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>AndroidLab Home Server • Built with Termux</p>
+      <a href="https://github.com/yourusername/androidlab" class="github-link" target="_blank">
+        ⭐ Star on GitHub
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // Populate system info
+    const ua = navigator.userAgent;
+    const platform = ua.includes('Android') ? 'Android' :
+                     ua.includes('Linux')   ? 'Linux' :
+                     ua.includes('Win')     ? 'Windows' :
+                     ua.includes('Mac')     ? 'macOS' : 'Unknown';
+
+    document.getElementById('platform').textContent = platform;
+    document.getElementById('timezone').textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById('language').textContent = navigator.language;
+
+    // Update time every second
+    function updateTime() {
+      document.getElementById('time').textContent = new Date().toLocaleTimeString();
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>
